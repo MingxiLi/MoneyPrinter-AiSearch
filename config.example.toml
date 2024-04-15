@@ -67,7 +67,7 @@
     # Visit below links to get more details
     # https://tongyi.aliyun.com/qianwen/
     # https://help.aliyun.com/zh/dashscope/developer-reference/model-introduction
-    qwen_api_key = "sk-be0d9b479a624254bfee7d1ba3e364df"
+    qwen_api_key = ""
     qwen_model_name = "qwen-max" 
 
 
