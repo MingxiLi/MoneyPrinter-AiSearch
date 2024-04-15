@@ -1,5 +1,6 @@
 <div align="center">
 <h1 align="center">MoneyPrinterTurbo 💸</h1>
+</div>
   
 # 👋 简介
 一个AI驱动的自动短视频生成器
