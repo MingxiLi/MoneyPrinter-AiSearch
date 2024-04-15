@@ -18,7 +18,7 @@
 </thead>
 <tbody>
 <tr>
-<td align="center"><video src="https://github.com/MingxiLi/MoneyPrinter-AiSearch/assets/32333706/5bc12d4c-346d-421d-beb0-358ee372b2f8"></video></td>
+<td align="center"><video src="https://github.com/MingxiLi/MoneyPrinter-AiSearch/assets/32333706/5bc12d4c-346d-421d-beb0-358ee372b2f8" width="800px" height="600px"></video></td>
 </tr>
 </tbody>
 </table>
