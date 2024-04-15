@@ -7,6 +7,19 @@
 <br>
 只需提供一个视频 <b>主题</b> 或 <b>关键词</b> ，文案/素材/字幕都完全由AI自动检索或生成，最终合成短视频
 
+<table>
+<thead>
+<tr>
+<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji> 《黄鹤楼》</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"><video src="https://github.com/MingxiLi/MoneyPrinter-AiSearch/blob/main/assests/%E4%B8%BB%E9%A2%98-%E9%BB%84%E9%B9%A4%E6%A5%BC.mp4"></video></td>
+</tr>
+</tbody>
+</table>
+
 ## 🗞️ 更新内容
 - [x] 更新<b>AI素材搜索</b>功能
   - 提升了素材和文案的匹配度（Pexels自带搜索功能不准确）
