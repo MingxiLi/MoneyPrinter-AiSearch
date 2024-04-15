@@ -35,6 +35,7 @@
 
 ## 💬 交流反馈
 <img src="assests/交流群.jpg" width="300">
+<img src="assests/微信交流群.jpg" width="300">
 
 ## 📥 安装部署
 
