@@ -34,7 +34,7 @@
 - [ ] 提升AI文案质量和视频生成质量
 
 ## 💬 交流反馈
-<img src="assests/交流群.jpg" width="300"> | <img src="assests/微信交流群.jpg" width="300">
+<img src="assests/交流群.jpg" height="300"> <img src="assests/微信交流群.jpg" height="300">
 
 ## 📥 安装部署
 
