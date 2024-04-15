@@ -1,5 +1,5 @@
 <div align="center">
-<h1 align="center">MoneyPrinterTurbo 💸</h1>
+<h1 align="center">MoneyPrinter-AiSearch 💸</h1>
 </div>
   
 ## 👋 简介
