@@ -52,7 +52,7 @@ git clone https://github.com/MingxiLi/MoneyPrinter-AiSearch.git
 5. LLM的api以及ImageMagick可以参考 https://github.com/harry0703/MoneyPrinterTurbo 。<b>推荐使用国内的LLM（例如通义千问），因为素材库下载素材不需要VPN，使用VPN反倒可能导致下载失败</b>
 
 ## 📚 参考项目 
-该项目基于以下两个项目，加入了更多AI功能，提升生成视频的质量。感谢两个项目的作者
+该项目基于以下两个项目，加入了更多AI功能，提升生成视频的质量。非常感谢两个项目的作者！！！
 - https://github.com/FujiwaraChoki/MoneyPrinter
 - https://github.com/harry0703/MoneyPrinterTurbo
 
