@@ -16,7 +16,7 @@
 </thead>
 <tbody>
 <tr>
-<td align="center"><video src="https://github.com/MingxiLi/MoneyPrinter-AiSearch/blob/main/assests/%E4%B8%BB%E9%A2%98-%E9%BB%84%E9%B9%A4%E6%A5%BC.mp4"></video></td>
+<td align="center"><video src="https://github.com/MingxiLi/MoneyPrinter-AiSearch/issues/1#issuecomment-2056490163"></video></td>
 </tr>
 </tbody>
 </table>
