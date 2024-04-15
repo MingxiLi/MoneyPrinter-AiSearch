@@ -37,6 +37,18 @@
 <img src="assests/交流群.jpg" height="300"> <img src="assests/微信交流群.jpg" height="300">
 
 ## 📥 安装部署
+1. 下载git文件
+```shell
+git clone https://github.com/MingxiLi/MoneyPrinter-AiSearch.git
+```
+2. 下载素材检索模型及数据库，地址在百度网盘
+```shell
+链接：https://pan.baidu.com/s/1fZTFYu5Oj9KKHP0kTyeudQ?pwd=my5w 
+提取码：my5w
+```
+3. 将解压后的'database'和'nn_models'两个文件夹，放到'resource'文件夹内
+4. 点击目录下的'run.bat'文件，首次运行会自动下载配置环境
+5. LLM的api以及ImageMagick可以参考https://github.com/harry0703/MoneyPrinterTurbo。<b>推荐使用国内的LLM，因为素材库下载素材不需要VPN，使用VPN反倒可能导致下载失败</b>
 
 ## 📚 参考项目 
 该项目基于以下两个项目，加入了更多AI功能，提升生成视频的质量。感谢两个项目的作者
