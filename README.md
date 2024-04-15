@@ -22,6 +22,10 @@
 - https://github.com/FujiwaraChoki/MoneyPrinter
 - https://github.com/harry0703/MoneyPrinterTurbo
 
+# 📥 安装部署
+
+# 💬 交流反馈
+
 # 📝 许可
 
 点击查看 [`LICENSE`](LICENSE) 文件
