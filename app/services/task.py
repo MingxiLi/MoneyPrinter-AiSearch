@@ -1,7 +1,8 @@
-import math
+import streamlit as st
 import os.path
 import re
 from os import path
+from moviepy.video.tools.subtitles import SubtitlesClip
 
 from loguru import logger
 
@@ -34,45 +35,15 @@ def start(task_id, params: VideoParams):
     voice_name = voice.parse_voice_name(params.voice_name)
     paragraph_number = params.paragraph_number
     n_threads = params.n_threads
-    max_clip_duration = params.video_clip_duration
 
-    logger.info("\n\n## generating video script")
     video_script = params.video_script.strip()
     if not video_script:
-        video_script = llm.generate_script(video_subject=video_subject, language=params.video_language,
-                                           paragraph_number=paragraph_number)
+        logger.info("\n\n## generating video script")
+        video_script = llm.generate_script(video_subject=video_subject, language=params.video_language, paragraph_number=paragraph_number)
     else:
-        logger.debug(f"video script: \n{video_script}")
-    logger.debug('debug: ', video_script)
+        logger.info("\n\n## reuse video script")
 
     sm.state.update_task(task_id, state=const.TASK_STATE_PROCESSING, progress=10)
-
-    logger.info("\n\n## generating video terms")
-    video_terms = params.video_terms
-    if not video_terms:
-        video_terms = llm.generate_terms(video_subject=video_subject, video_script=video_script, amount=5)
-    else:
-        if isinstance(video_terms, str):
-            video_terms = [term.strip() for term in re.split(r'[,，]', video_terms)]
-        elif isinstance(video_terms, list):
-            video_terms = [term.strip() for term in video_terms]
-        else:
-            raise ValueError("video_terms must be a string or a list of strings.")
-
-        logger.debug(f"video terms: {utils.to_json(video_terms)}")
-    logger.debug(f"video terms: {utils.to_json(video_terms)}")
-
-    script_file = path.join(utils.task_dir(task_id), f"script.json")
-    script_data = {
-        "script": video_script,
-        "search_terms": video_terms,
-        "params": params,
-    }
-
-    with open(script_file, "w", encoding="utf-8") as f:
-        f.write(utils.to_json(script_data))
-
-    sm.state.update_task(task_id, state=const.TASK_STATE_PROCESSING, progress=20)
 
     logger.info("\n\n## generating audio")
     audio_file = path.join(utils.task_dir(task_id), f"audio.mp3")
@@ -84,7 +55,7 @@ def start(task_id, params: VideoParams):
         return
 
     audio_duration = voice.get_audio_duration(sub_maker)
-    audio_duration = math.ceil(audio_duration)
+    logger.info(f"debug audio duration: {audio_duration}")
 
     sm.state.update_task(task_id, state=const.TASK_STATE_PROCESSING, progress=30)
 
@@ -92,8 +63,10 @@ def start(task_id, params: VideoParams):
     if params.subtitle_enabled:
         subtitle_path = path.join(utils.task_dir(task_id), f"subtitle.srt")
         subtitle_provider = config.app.get("subtitle_provider", "").strip().lower()
+
         logger.info(f"\n\n## generating subtitle, provider: {subtitle_provider}")
         subtitle_fallback = False
+        
         if subtitle_provider == "edge":
             voice.create_subtitle(text=video_script, sub_maker=sub_maker, subtitle_file=subtitle_path)
             if not os.path.exists(subtitle_path):
@@ -108,17 +81,46 @@ def start(task_id, params: VideoParams):
         subtitle_lines = subtitle.file_to_subtitles(subtitle_path)
         if not subtitle_lines:
             logger.warning(f"subtitle file is invalid: {subtitle_path}")
-            subtitle_path = ""
+            subtitle_path = ""    
 
     sm.state.update_task(task_id, state=const.TASK_STATE_PROCESSING, progress=40)
+    
+    video_terms = params.video_terms.strip()
+        
+    if not video_terms:
+        logger.info("\n\n## generating video terms")
+        sub = SubtitlesClip(subtitles=subtitle_path, encoding='utf-8')
+        video_terms = []
+        for subtitle_item in sub.subtitles:
+            phrase = subtitle_item[1]
+            response_prompt = llm.generate_prompt(subject=params.video_subject, script=phrase)
+            duration = subtitle_item[0][1] - subtitle_item[0][0]
+            video_terms.append((response_prompt, duration))
+            logger.debug(f"debug : {phrase, response_prompt, type(duration)}")
+            logger.debug(f"debug : {type(video_terms)}")
+    else:
+        logger.info("\n\n## reuse video terms")
+        sub = SubtitlesClip(subtitles=subtitle_path, encoding='utf-8')
+        logger.info(f"debug audio duration: {video_terms}")
+        tmp_idx = 0
+        tmp_terms = video_terms[1:-1].split(',')
+        video_terms = []
+        for subtitle_item in sub.subtitles:
+            response_prompt = tmp_terms[tmp_idx]
+            duration = subtitle_item[0][1] - subtitle_item[0][0]
+            video_terms.append((response_prompt, duration))
+            logger.debug(f"debug : {response_prompt, type(duration)}")
+            logger.debug(f"debug : {type(video_terms)}")
+            tmp_idx += 1
+        logger.info("\n\n## reuse video terms")
+        
 
+    sm.state.update_task(task_id, state=const.TASK_STATE_PROCESSING, progress=20)
+    
     logger.info("\n\n## downloading videos")
     downloaded_videos = material.download_videos(task_id=task_id,
                                                  search_terms=video_terms,
                                                  video_aspect=params.video_aspect,
-                                                 video_contact_mode=params.video_concat_mode,
-                                                 audio_duration=audio_duration * params.video_count,
-                                                 max_clip_duration=max_clip_duration,
                                                  )
     if not downloaded_videos:
         sm.state.update_task(task_id, state=const.TASK_STATE_FAILED)
@@ -130,42 +132,36 @@ def start(task_id, params: VideoParams):
 
     final_video_paths = []
     combined_video_paths = []
-    video_concat_mode = params.video_concat_mode
-    if params.video_count > 1:
-        video_concat_mode = VideoConcatMode.random
 
     _progress = 50
-    for i in range(params.video_count):
-        index = i + 1
-        combined_video_path = path.join(utils.task_dir(task_id), f"combined-{index}.mp4")
-        logger.info(f"\n\n## combining video: {index} => {combined_video_path}")
-        video.combine_videos(combined_video_path=combined_video_path,
-                             video_paths=downloaded_videos,
-                             audio_file=audio_file,
+
+    combined_video_path = path.join(utils.task_dir(task_id), f"combined.mp4")
+    logger.info(f"\n\n## combining video: => {combined_video_path}")
+    video.combine_videos(combined_video_path=combined_video_path,
+                            video_paths=downloaded_videos,
+                            audio_duration=audio_duration,
                              video_aspect=params.video_aspect,
-                             video_concat_mode=video_concat_mode,
-                             max_clip_duration=max_clip_duration,
                              threads=n_threads)
 
-        _progress += 50 / params.video_count / 2
-        sm.state.update_task(task_id, progress=_progress)
+    _progress += 50 / 2
+    sm.state.update_task(task_id, progress=_progress)
 
-        final_video_path = path.join(utils.task_dir(task_id), f"final-{index}.mp4")
+    final_video_path = path.join(utils.task_dir(task_id), f"final.mp4")
 
-        logger.info(f"\n\n## generating video: {index} => {final_video_path}")
-        # Put everything together
-        video.generate_video(video_path=combined_video_path,
+    logger.info(f"\n\n## generating video: => {final_video_path}")
+    # Put everything together
+    video.generate_video(video_path=combined_video_path,
                              audio_path=audio_file,
                              subtitle_path=subtitle_path,
                              output_file=final_video_path,
                              params=params,
                              )
 
-        _progress += 50 / params.video_count / 2
-        sm.state.update_task(task_id, progress=_progress)
+    _progress += 50 / 2
+    sm.state.update_task(task_id, progress=_progress)
 
-        final_video_paths.append(final_video_path)
-        combined_video_paths.append(combined_video_path)
+    final_video_paths.append(final_video_path)
+    combined_video_paths.append(combined_video_path)
 
     logger.success(f"task {task_id} finished, generated {len(final_video_paths)} videos.")
 

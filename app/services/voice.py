@@ -1084,15 +1084,23 @@ def create_subtitle(sub_maker: submaker.SubMaker, text: str, subtitle_file: str)
     sub_line = ""
 
     try:
-        for _, (offset, sub) in enumerate(zip(sub_maker.offset, sub_maker.subs)):
+        for offset_idx, (offset, sub) in enumerate(zip(sub_maker.offset, sub_maker.subs)):
             _start_time, end_time = offset
+            
             if start_time < 0:
                 start_time = _start_time
 
             sub = unescape(sub)
             sub_line += sub
+            
+            logger.info(f"debug sub_line: {_start_time, end_time, sub_line}")
             sub_text = match_line(sub_line, sub_index)
             if sub_text:
+                
+                if offset_idx < len(sub_maker.offset) - 1:
+                    end_time = sub_maker.offset[offset_idx+1][0]
+                logger.info(f"debug start time: {start_time}, end_time: {end_time}")
+            
                 sub_index += 1
                 line = formatter(
                     idx=sub_index,

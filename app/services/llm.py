@@ -297,6 +297,36 @@ Generate {amount} search terms for stock videos, depending on the subject of a v
     return search_terms
 
 
+def generate_prompt(subject: str, script: str) -> List[str]:
+    prompt = f"""
+# Role: Prompt Generator for CLIP model
+
+## Goals:
+Generate prompt for CLIP model. The prompt will be used to search for images matching input script considering the input subject.
+
+## Constrains:
+1. the prompt is to be returned as a string.
+2. you must only return the string. you must not return anything else. you must not return the script and must not return the word 'prompt'.
+3. you must be in consideration of context of the subject
+4. you must reply in the same language as the script.
+
+## Output Example:
+"prompt"
+
+## Context:
+### subject
+{subject}
+### script
+{script}
+
+""".strip()
+
+    logger.info(f"prompt: {prompt}")
+    response = _generate_response(prompt)
+    logger.success(f"completed: \n{response}")
+    return response
+
+
 # def generate_terms(video_subject: str, video_script: str, amount: int = 5) -> List[str]:
 #     prompt = f"""
 # # Role: summaries of storyboard of Video Shooting Script

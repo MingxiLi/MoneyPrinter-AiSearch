@@ -51,7 +51,6 @@ def create(audio_file, subtitle_file: str = ""):
             return
 
         msg = "[%.2fs -> %.2fs] %s" % (seg_start, seg_end, seg_text)
-        logger.debug(msg)
 
         subtitles.append({
             "msg": seg_text,
@@ -180,3 +179,4 @@ if __name__ == "__main__":
 
     subtitle_file = f"{task_dir}/subtitle-test.srt"
     create(audio_file, subtitle_file)
+

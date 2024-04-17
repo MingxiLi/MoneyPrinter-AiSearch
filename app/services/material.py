@@ -16,27 +16,30 @@ requested_count = 0
 
 
 def search_videos(search_term: str,
-                  minimum_duration: int,
+                  duration: float,
                   video_aspect: VideoAspect = VideoAspect.portrait,
                   ) -> List[MaterialInfo]:
     aspect = VideoAspect(video_aspect)
 
     text_feature = process_text(search_term)
-    video_list = search_pexels_video_by_feature(text_feature)[:10]
+    video_list = search_pexels_video_by_feature(text_feature)
     video_items = []
     
-    # sampled_video = random.choice(video_list)
-    sampled_video = video_list[0]
-    duration = sampled_video["duration"]
-    while duration < minimum_duration:
-        sampled_video = random.choice(video_list)
+    sampled_duration = 0.
+    idx = 0
+    
+    while sampled_duration < duration:
+        sampled_video = video_list[idx]
         duration = sampled_video["duration"]
-
-    item = MaterialInfo()
-    item.provider = "pexels"
-    item.url = 'https://www.pexels.com/download/video/' + sampled_video["thumbnail_loc"].split('/')[4]
-    item.duration = sampled_video["duration"]
-    video_items.append(item)
+        
+        item = MaterialInfo()
+        item.provider = "pexels"
+        item.url = 'https://www.pexels.com/download/video/' + sampled_video["thumbnail_loc"].split('/')[4]
+        item.duration = sampled_video["duration"]
+        video_items.append(item)
+        
+        sampled_duration += duration
+        idx += 1    
         
     return video_items
 
@@ -81,56 +84,60 @@ def save_video(video_url: str, save_dir: str = "") -> str:
 
 
 def download_videos(task_id: str,
-                    search_terms: List[str],
+                    search_terms: List = [(str, float)],
                     video_aspect: VideoAspect = VideoAspect.portrait,
-                    video_contact_mode: VideoConcatMode = VideoConcatMode.random,
-                    audio_duration: float = 0.0,
-                    max_clip_duration: int = 5,
                     ) -> List[str]:
-    valid_video_items = []
-    valid_video_urls = []
-    found_duration = 0.0
-    for search_term in search_terms:
-        logger.info(f"searching videos for '{search_term}'")
-        video_items = search_videos(search_term=search_term,
-                                    minimum_duration=max_clip_duration,
-                                    video_aspect=video_aspect)
-        logger.info(f"found {len(video_items)} videos for '{search_term}'")
-
-        for item in video_items:
-            if item.url not in valid_video_urls:
-                valid_video_items.append(item)
-                valid_video_urls.append(item.url)
-                found_duration += item.duration
-
-    logger.info(
-        f"found total videos: {len(valid_video_items)}, required duration: {audio_duration} seconds, found duration: {found_duration} seconds")
     video_paths = []
-
+    valid_video_urls = []
+    
     material_directory = config.app.get("material_directory", "").strip()
     if material_directory == "task":
         material_directory = utils.task_dir(task_id)
     elif material_directory and not os.path.isdir(material_directory):
         material_directory = ""
+    
+    for search_term in search_terms:
+        logger.info(f"searching videos for '{search_term}'")
+        
+        text_feature = process_text(search_term[0])
+        video_list = search_pexels_video_by_feature(text_feature)
+        
+        cur_sampled_duration = 0.
+        idx = 0
+        
+        while cur_sampled_duration < search_term[1]:
+            sampled_video = video_list[idx]
+            cur_url = 'https://www.pexels.com/download/video/' + sampled_video["thumbnail_loc"].split('/')[4]
+            
+            if cur_url not in valid_video_urls:
+                logger.info(f"downloading video: {cur_url}")
+                saved_video_path = save_video(video_url=cur_url, save_dir=material_directory)
+                
+                if saved_video_path:
+                    cur_clip = VideoFileClip(saved_video_path).without_audio()
+                    cur_clip = cur_clip.set_fps(30)
+                    
+                    if (cur_sampled_duration + cur_clip.duration) > search_term[1]:
+                        cur_clip = cur_clip.subclip(0, (search_term[1] - cur_sampled_duration + 0.2))
+                    
+                    post_str = os.path.splitext(saved_video_path)[-1]
+                    saved_video_clip_path = saved_video_path.replace(post_str, '_clip' + post_str)
+                    
+                    cur_clip.write_videofile(
+                            filename=saved_video_clip_path,
+                            threads=2,
+                            logger=None,
+                            audio_codec="aac",
+                            fps=30,
+                        )
+                    
+                    logger.info(f"video saved: {saved_video_clip_path}")
+                    video_paths.append(saved_video_clip_path)
+                    
+                    cur_sampled_duration += cur_clip.duration
+                    valid_video_urls.append(cur_url)
+            idx += 1
 
-    if video_contact_mode.value == VideoConcatMode.random.value:
-        random.shuffle(valid_video_items)
-
-    total_duration = 0.0
-    for item in valid_video_items:
-        try:
-            logger.info(f"downloading video: {item.url}")
-            saved_video_path = save_video(video_url=item.url, save_dir=material_directory)
-            if saved_video_path:
-                logger.info(f"video saved: {saved_video_path}")
-                video_paths.append(saved_video_path)
-                seconds = min(max_clip_duration, item.duration)
-                total_duration += seconds
-                if total_duration > audio_duration:
-                    logger.info(f"total duration of downloaded videos: {total_duration} seconds, skip downloading more")
-                    break
-        except Exception as e:
-            logger.error(f"failed to download video: {utils.to_json(item)} => {str(e)}")
     logger.success(f"downloaded {len(video_paths)} videos")
     return video_paths
 

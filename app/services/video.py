@@ -28,19 +28,10 @@ def get_bgm_file(bgm_type: str = "random", bgm_file: str = ""):
 
 def combine_videos(combined_video_path: str,
                    video_paths: List[str],
-                   audio_file: str,
+                   audio_duration: float,
                    video_aspect: VideoAspect = VideoAspect.portrait,
-                   video_concat_mode: VideoConcatMode = VideoConcatMode.random,
-                   max_clip_duration: int = 5,
                    threads: int = 2,
                    ) -> str:
-    audio_clip = AudioFileClip(audio_file)
-    audio_duration = audio_clip.duration
-    logger.info(f"max duration of audio: {audio_duration} seconds")
-    # Required duration of each clip
-    req_dur = audio_duration / len(video_paths)
-    req_dur = max_clip_duration
-    logger.info(f"each clip will be maximum {req_dur} seconds long")
     output_dir = os.path.dirname(combined_video_path)
 
     aspect = VideoAspect(video_aspect)
@@ -49,56 +40,43 @@ def combine_videos(combined_video_path: str,
     clips = []
     video_duration = 0
     # Add downloaded clips over and over until the duration of the audio (max_duration) has been reached
-    while video_duration < audio_duration:
-        # random video_paths order
-        if video_concat_mode.value == VideoConcatMode.random.value:
-            random.shuffle(video_paths)
+    for video_path in video_paths:
+        clip = VideoFileClip(video_path).without_audio()
+        clip = clip.set_fps(30)
 
-        for video_path in video_paths:
-            clip = VideoFileClip(video_path).without_audio()
-            # Check if clip is longer than the remaining audio
-            if (audio_duration - video_duration) < clip.duration:
-                clip = clip.subclip(0, (audio_duration - video_duration))
-            # Only shorten clips if the calculated clip length (req_dur) is shorter than the actual clip to prevent still image
-            elif req_dur < clip.duration:
-                clip = clip.subclip(0, req_dur)
-            clip = clip.set_fps(30)
+        # Not all videos are same size, so we need to resize them
+        clip_w, clip_h = clip.size
+        if clip_w != video_width or clip_h != video_height:
+            clip_ratio = clip.w / clip.h
+            video_ratio = video_width / video_height
 
-            # Not all videos are same size, so we need to resize them
-            clip_w, clip_h = clip.size
-            if clip_w != video_width or clip_h != video_height:
-                clip_ratio = clip.w / clip.h
-                video_ratio = video_width / video_height
-
-                if clip_ratio == video_ratio:
-                    # 等比例缩放
-                    clip = clip.resize((video_width, video_height))
+            if clip_ratio == video_ratio:
+                # 等比例缩放
+                clip = clip.resize((video_width, video_height))
+            else:
+                # 等比缩放视频
+                if clip_ratio > video_ratio:
+                    # 按照目标宽度等比缩放
+                    scale_factor = video_width / clip_w
                 else:
-                    # 等比缩放视频
-                    if clip_ratio > video_ratio:
-                        # 按照目标宽度等比缩放
-                        scale_factor = video_width / clip_w
-                    else:
-                        # 按照目标高度等比缩放
-                        scale_factor = video_height / clip_h
+                    # 按照目标高度等比缩放
+                    scale_factor = video_height / clip_h
 
-                    new_width = int(clip_w * scale_factor)
-                    new_height = int(clip_h * scale_factor)
-                    clip_resized = clip.resize(newsize=(new_width, new_height))
+                new_width = int(clip_w * scale_factor)
+                new_height = int(clip_h * scale_factor)
+                clip_resized = clip.resize(newsize=(new_width, new_height))
 
-                    background = ColorClip(size=(video_width, video_height), color=(0, 0, 0))
-                    clip = CompositeVideoClip([
-                        background.set_duration(clip.duration),
-                        clip_resized.set_position("center")
-                    ])
+                background = ColorClip(size=(video_width, video_height), color=(0, 0, 0))
+                clip = CompositeVideoClip([
+                    background.set_duration(clip.duration),
+                    clip_resized.set_position("center")
+                ])
 
-                logger.info(f"resizing video to {video_width} x {video_height}, clip size: {clip_w} x {clip_h}")
+            logger.info(f"resizing video to {video_width} x {video_height}, clip size: {clip_w} x {clip_h}")
 
-            if clip.duration > max_clip_duration:
-                clip = clip.subclip(0, max_clip_duration)
-
-            clips.append(clip)
-            video_duration += clip.duration
+        clips.append(clip)
+        video_duration += clip.duration
+        logger.info(f"video_duration {video_duration, audio_duration}")
 
     final_clip = concatenate_videoclips(clips)
     final_clip = final_clip.set_fps(30)

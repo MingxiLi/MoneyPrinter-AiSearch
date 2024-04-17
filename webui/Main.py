@@ -1,5 +1,7 @@
 import sys
 import os
+from os import path
+from moviepy.video.tools.subtitles import SubtitlesClip
 
 # Add the root directory of the project to the system path to allow importing modules from the project
 root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -142,7 +144,7 @@ st.write(tr("Get Help"))
 with st.expander(tr("Basic Settings"), expanded=False):
     config_panels = st.columns(2)
     left_config_panel = config_panels[0]
-    middle_config_panel = config_panels[1]
+    right_config_panel = config_panels[1]
     # right_config_panel = config_panels[2]
     with left_config_panel:
         display_languages = []
@@ -160,7 +162,7 @@ with st.expander(tr("Basic Settings"), expanded=False):
             config.ui['language'] = code
             config.save_config()
 
-    with middle_config_panel:
+    with right_config_panel:
         #   openai
         #   moonshot (月之暗面)
         #   oneapi
@@ -202,22 +204,9 @@ with st.expander(tr("Basic Settings"), expanded=False):
 
         config.save_config()
 
-    # with right_config_panel:
-    #     pexels_api_keys = config.app.get("pexels_api_keys", [])
-    #     if isinstance(pexels_api_keys, str):
-    #         pexels_api_keys = [pexels_api_keys]
-    #     pexels_api_key = ", ".join(pexels_api_keys)
-
-    #     pexels_api_key = st.text_input(tr("Pexels API Key"), value=pexels_api_key, type="password")
-    #     pexels_api_key = pexels_api_key.replace(" ", "")
-    #     if pexels_api_key:
-    #         config.app["pexels_api_keys"] = pexels_api_key.split(",")
-    #         config.save_config()
-
-panel = st.columns(3)
+panel = st.columns(2)
 left_panel = panel[0]
-middle_panel = panel[1]
-right_panel = panel[2]
+right_panel = panel[1]
 
 params = VideoParams()
 
@@ -240,45 +229,65 @@ with left_panel:
                                       )
         params.video_language = video_languages[selected_index][1]
 
-        if st.button(tr("Generate Video Script and Keywords"), key="auto_generate_script"):
-            with st.spinner(tr("Generating Video Script and Keywords")):
+        if st.button(tr("Generate Video Script"), key="auto_generate_script"):
+            if not params.video_subject:
+                st.error(tr("Please Enter the Video Subject"))
+                st.stop()
+                
+            with st.spinner(tr("Generating Video Script")):
                 script = llm.generate_script(video_subject=params.video_subject, language=params.video_language)
-                terms = llm.generate_terms(params.video_subject, script)
+    
                 st.session_state['video_script'] = script
-                st.session_state['video_terms'] = ", ".join(terms)
 
         params.video_script = st.text_area(
             tr("Video Script"),
             value=st.session_state['video_script'],
             height=280
         )
+        
         if st.button(tr("Generate Video Keywords"), key="auto_generate_terms"):
             if not params.video_script:
                 st.error(tr("Please Enter the Video Subject"))
                 st.stop()
 
             with st.spinner(tr("Generating Video Keywords")):
-                terms = llm.generate_terms(params.video_subject, params.video_script)
-                st.session_state['video_terms'] = ", ".join(terms)
+                script = params.video_script.strip()
+                audio_file = path.join(utils.task_dir('tmp'), f"audio.mp3")
+                voice_name = voice.parse_voice_name(params.voice_name)
+                sub_maker = voice.tts(text=script, voice_name="zh-CN-XiaoxiaoNeural", voice_file=audio_file)
+                subtitle_path = path.join(utils.task_dir('tmp'), f"subtitle.srt")
+                voice.create_subtitle(text=script, sub_maker=sub_maker, subtitle_file=subtitle_path)
+                sub = SubtitlesClip(subtitles=subtitle_path, encoding='utf-8')
+                video_terms = []
+                vis_terms = []
+                for subtitle_item in sub.subtitles:
+                    phrase = subtitle_item[1]
+                    response_prompt = llm.generate_prompt(subject=params.video_subject, script=phrase)
+                    duration = subtitle_item[0][1] - subtitle_item[0][0]
+                    video_terms.append((response_prompt, duration))
+                    vis_terms.append(response_prompt)
+                    
+                st.session_state['video_terms'] = vis_terms
 
         params.video_terms = st.text_area(
             tr("Video Keywords"),
             value=st.session_state['video_terms'],
-            height=50)
+            height=300
+        )
 
-with middle_panel:
+with right_panel:
     with st.container(border=True):
         st.write(tr("Video Settings"))
-        video_concat_modes = [
-            (tr("Sequential"), "sequential"),
-            (tr("Random"), "random"),
-        ]
-        selected_index = st.selectbox(tr("Video Concat Mode"),
-                                      index=1,
-                                      options=range(len(video_concat_modes)),  # 使用索引作为内部选项值
-                                      format_func=lambda x: video_concat_modes[x][0]  # 显示给用户的是标签
-                                      )
-        params.video_concat_mode = VideoConcatMode(video_concat_modes[selected_index][1])
+        # video_concat_modes = [
+        #     (tr("Sequential"), "sequential"),
+        #     (tr("Random"), "random"),
+        # ]
+        # selected_index = st.selectbox(tr("Video Concat Mode"),
+        #                               index=1,
+        #                               options=range(len(video_concat_modes)),  # 使用索引作为内部选项值
+        #                               format_func=lambda x: video_concat_modes[x][0]  # 显示给用户的是标签
+        #                               )
+        # params.video_concat_mode = VideoConcatMode(video_concat_modes[selected_index][1])
 
         video_aspect_ratios = [
             (tr("Portrait"), VideoAspect.portrait.value),
@@ -290,9 +299,9 @@ with middle_panel:
                                       )
         params.video_aspect = VideoAspect(video_aspect_ratios[selected_index][1])
 
-        params.video_clip_duration = st.selectbox(tr("Clip Duration"), options=[2, 3, 4, 5, 6], index=1)
-        params.video_count = st.selectbox(tr("Number of Videos Generated Simultaneously"), options=[1, 2, 3, 4, 5],
-                                          index=0)
+        # params.video_clip_duration = st.selectbox(tr("Clip Duration"), options=[2, 3, 4, 5, 6], index=1)
+        # params.video_count = st.selectbox(tr("Number of Videos Generated Simultaneously"), options=[1, 2, 3, 4, 5],
+        #                                   index=0)
     with st.container(border=True):
         st.write(tr("Audio Settings"))
         voices = voice.get_all_voices(filter_locals=["zh-CN", "zh-HK", "zh-TW", "de-DE", "en-US"])
@@ -345,7 +354,7 @@ with middle_panel:
         params.bgm_volume = st.selectbox(tr("Background Music Volume"),
                                          options=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], index=2)
 
-with right_panel:
+# with right_panel:
     with st.container(border=True):
         st.write(tr("Subtitle Settings"))
         params.subtitle_enabled = st.checkbox(tr("Enable Subtitles"), value=True)
