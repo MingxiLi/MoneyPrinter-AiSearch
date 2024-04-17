@@ -7,6 +7,7 @@
 <br>
 ### 主要特点：
 - AI素材精准搜索，和文案匹配度更高
+- 音画一致性更好，生成质量更高
 ### 界面
 ![](assests/界面.png)
 ### 生成视频Demo
@@ -36,7 +37,7 @@
 - [ ] 提升AI文案质量和视频生成质量
 
 ## 💬 交流反馈
-<img src="assests/交流群.jpg" height="300"> <img src="assests/微信交流群.jpg" height="300">
+<img src="assests/微信交流群.jpg" height="300"> <img src="assests/交流群.jpg" height="300"> 
 
 ## 📥 安装部署
 1. 下载git文件
