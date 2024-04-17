@@ -18,15 +18,16 @@
 </thead>
 <tbody>
 <tr>
-<td align="center"><video src="https://github.com/MingxiLi/MoneyPrinter-AiSearch/assets/32333706/5bc12d4c-346d-421d-beb0-358ee372b2f8"></video></td>
+<td align="center"><video src="https://github.com/MingxiLi/MoneyPrinter-AiSearch/assets/32333706/a5fa5712-a962-435c-8e2f-73135121f0e8"></video></td>
 </tr>
 </tbody>
 </table>
 
 ## 🗞️ 更新内容
-- [x] 更新<b>AI素材搜索</b>功能
+- [x] 2024-04-16：更新<b>AI素材搜索</b>功能
   - [x] 提升了素材和文案的匹配度（Pexels自带搜索功能不准确）
   - [x] 更新了中文AI搜索模型和相关数据库，支持Pexels上面近40w视频检索
+- [x] 2024-04-17: 优化音画一致性
 
 ## 📅 后期计划 
 很多要优化的...，有需求大家可以提issue或者联系我
