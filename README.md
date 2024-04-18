@@ -50,9 +50,11 @@ git clone https://github.com/MingxiLi/MoneyPrinter-AiSearch.git
 提取码：my5w
 ```
 3. 将解压后的'database'和'nn_models'两个文件夹，放到'resource'文件夹内
-4. 点击目录下的'run.bat'文件，首次运行会自动下载配置环境
-5. LLM的api以及ImageMagick可以参考 https://github.com/harry0703/MoneyPrinterTurbo 。<b>推荐使用国内的LLM（例如通义千问），因为素材库下载素材不需要VPN，使用VPN反倒可能导致下载失败</b>
-6. 使用教程：https://v.douyin.com/iY4B7fsA
+4. 首先确保已经安装了python，示例用的版本：Python 3.11.5
+5. 进入到MoneyPrinter-AiSearch文件夹下，运行命令：```shell python -m venv venv ```
+6. 点击目录下的'run.bat'文件，首次运行会自动下载配置环境
+7. LLM的api以及ImageMagick可以参考 https://github.com/harry0703/MoneyPrinterTurbo 。<b>推荐使用国内的LLM（例如通义千问），因为素材库下载素材不需要VPN，使用VPN反倒可能导致下载失败</b>
+8. 使用教程：https://v.douyin.com/iY4B7fsA
 
 ## 📚 参考项目 
 该项目基于以下两个项目，加入了更多AI功能，提升生成视频的质量。非常感谢两个项目的作者！！！
