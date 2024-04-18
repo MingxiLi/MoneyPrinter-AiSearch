@@ -55,8 +55,11 @@ pip install -r requirements.txt
 ```
 3. 将解压后的'database'和'nn_models'两个文件夹，放到'resource'文件夹内
 4. 配置LLM的api以及ImageMagick：参考 https://github.com/harry0703/MoneyPrinterTurbo 
-5. 开始运行：```streamlit run .\webui\Main.py --browser.gatherUsageStats=False --server.enableCORS=True```
-6. 软件使用教程：https://v.douyin.com/iY4B7fsA
+5. 开始运行：
+   ```shell
+   streamlit run .\webui\Main.py --browser.gatherUsageStats=False --server.enableCORS=True
+   ```
+7. 软件使用教程：https://v.douyin.com/iY4B7fsA
 
 ## 📚 参考项目 
 该项目基于以下两个项目，加入了更多AI功能，提升生成视频的质量。非常感谢两个项目的作者！！！
