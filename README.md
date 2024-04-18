@@ -7,6 +7,7 @@
 <br>
 ### 主要特点：
 - AI素材精准搜索，和文案匹配度更高
+- 音画一致性更好，生成质量更高
 ### 界面
 ![](assests/界面.png)
 ### 生成视频Demo
@@ -18,15 +19,16 @@
 </thead>
 <tbody>
 <tr>
-<td align="center"><video src="https://github.com/MingxiLi/MoneyPrinter-AiSearch/assets/32333706/5bc12d4c-346d-421d-beb0-358ee372b2f8"></video></td>
+<td align="center"><video src="https://github.com/MingxiLi/MoneyPrinter-AiSearch/assets/32333706/a5fa5712-a962-435c-8e2f-73135121f0e8"></video></td>
 </tr>
 </tbody>
 </table>
 
 ## 🗞️ 更新内容
-- [x] 更新<b>AI素材搜索</b>功能
+- [x] 2024-04-16：更新<b>AI素材搜索</b>功能
   - [x] 提升了素材和文案的匹配度（Pexels自带搜索功能不准确）
   - [x] 更新了中文AI搜索模型和相关数据库，支持Pexels上面近40w视频检索
+- [x] 2024-04-17: 优化音画一致性
 
 ## 📅 后期计划 
 很多要优化的...，有需求大家可以提issue或者联系我
@@ -35,7 +37,7 @@
 - [ ] 提升AI文案质量和视频生成质量
 
 ## 💬 交流反馈
-<img src="assests/交流群.jpg" height="300"> <img src="assests/微信交流群.jpg" height="300">
+<img src="assests/微信交流群.jpg" height="300"> <img src="assests/交流群.jpg" height="300"> 
 
 ## 📥 安装部署
 1. 下载git文件
@@ -50,6 +52,7 @@ git clone https://github.com/MingxiLi/MoneyPrinter-AiSearch.git
 3. 将解压后的'database'和'nn_models'两个文件夹，放到'resource'文件夹内
 4. 点击目录下的'run.bat'文件，首次运行会自动下载配置环境
 5. LLM的api以及ImageMagick可以参考 https://github.com/harry0703/MoneyPrinterTurbo 。<b>推荐使用国内的LLM（例如通义千问），因为素材库下载素材不需要VPN，使用VPN反倒可能导致下载失败</b>
+6. 使用教程：https://v.douyin.com/iY4B7fsA
 
 ## 📚 参考项目 
 该项目基于以下两个项目，加入了更多AI功能，提升生成视频的质量。非常感谢两个项目的作者！！！
