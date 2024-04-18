@@ -54,7 +54,7 @@ pip install -r requirements.txt
 提取码：my5w
 ```
 3. 将解压后的'database'和'nn_models'两个文件夹，放到'resource'文件夹内
-4. LLM的api以及ImageMagick可以参考 https://github.com/harry0703/MoneyPrinterTurbo 
+4. 配置LLM的api以及ImageMagick：参考 https://github.com/harry0703/MoneyPrinterTurbo 
 5. 开始运行：streamlit run .\webui\Main.py --browser.gatherUsageStats=False --server.enableCORS=True
 6. 软件使用教程：https://v.douyin.com/iY4B7fsA
 
